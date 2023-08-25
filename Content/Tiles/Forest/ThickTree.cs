@@ -198,7 +198,7 @@ namespace StarlightRiver.Content.Tiles.Forest
 			}
 
 			CutPositions.Add(new Point(i, j));
-			Terraria.Audio.SoundEngine.PlaySound(new Terraria.Audio.SoundStyle($"{nameof(StarlightRiver)}/Sounds/TreeFalling"));
+			Terraria.Audio.SoundEngine.PlaySound(new Terraria.Audio.SoundStyle($"{nameof(StarlightRiver)}/Sounds/TreeFalling") with { MaxInstances = 0 /*Because fast mining thats why*/}); 
 		}
 
 		public override bool TileFrame(int i, int j, ref bool resetFrame, ref bool noBreak)
