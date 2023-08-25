@@ -1,8 +1,8 @@
 ﻿//Todo on falling trees:
 
-//Cache frame data
+//Cache frame data (done? test it more to see)
 //Make top of trees separate tile
-//Sfx
+//Sfx (done)
 //Make it include the bottom when you chop it
 //Make them harder to chop
 //Make the bottom choppable by axe
@@ -19,6 +19,7 @@ namespace StarlightRiver.Content.Tiles.Forest
 {
 	internal class ThickTree : ModTile
 	{
+		private static readonly HashSet<Point> CutPositions = new();
 		public override string Texture => AssetDirectory.ForestTile + Name;
 
 		public override void SetStaticDefaults()
@@ -180,18 +181,24 @@ namespace StarlightRiver.Content.Tiles.Forest
 			{
 				KillTile(i - 1, j, ref fail, ref effectOnly, ref noItem);
 			}
+
 			if (right)
 			{
 				KillTile(i + 1, j, ref fail, ref effectOnly, ref noItem);
 			}
+
 			if (up)
 			{
 				KillTile(i, j - 1, ref fail, ref effectOnly, ref noItem);
 			}
+
 			if (down)
 			{
 				KillTile(i, j - 1, ref fail, ref effectOnly, ref noItem);
 			}
+
+			CutPositions.Add(new Point(i, j));
+			Terraria.Audio.SoundEngine.PlaySound(new Terraria.Audio.SoundStyle($"{nameof(StarlightRiver)}/Sounds/TreeFalling"));
 		}
 
 		public override bool TileFrame(int i, int j, ref bool resetFrame, ref bool noBreak)
@@ -230,7 +237,7 @@ namespace StarlightRiver.Content.Tiles.Forest
 			int height = 1;
 			for (; height < 500; height++)
 			{
-				if (Framing.GetTileSafely(i, j - height).TileType != ModContent.TileType<ThickTree>())
+				if (Framing.GetTileSafely(i, j - height).TileType != ModContent.TileType<ThickTree>() || CutPositions.Contains(new Point(i, j - height)))
 					break;
 			}
 
@@ -283,6 +290,7 @@ namespace StarlightRiver.Content.Tiles.Forest
 				var pos = ((new Vector2(i, j) + Helpers.Helper.TileAdj) * 16) - new Vector2(0, 4);
 				spriteBatch.Draw(tex, pos - Main.screenPosition, null, Lighting.GetColor(new Point(i, j)), 0f, Vector2.Zero, 1, SpriteEffects.None, 0f);
 			}
+
 			return base.PreDraw(i, j, spriteBatch);
 		}
 	}
@@ -312,7 +320,7 @@ namespace StarlightRiver.Content.Tiles.Forest
 
 		public override void SetStaticDefaults()
 		{
-			DisplayName.SetDefault("Falling Tree");
+			DisplayName.SetDefault("Falling Large Tree");
 		}
 
 		public override void DrawBehind(int index, List<int> behindNPCsAndTiles, List<int> behindNPCs, List<int> behindProjectiles, List<int> overPlayers, List<int> overWiresUI)
@@ -322,7 +330,6 @@ namespace StarlightRiver.Content.Tiles.Forest
 
 		public override void AI()
 		{
-
 			if (Math.Abs(Projectile.rotation) < 1.75f)
 			{
 				if (rotationalVelocity < maxVelocity)
@@ -415,13 +422,14 @@ namespace StarlightRiver.Content.Tiles.Forest
 							drawPos += new Vector2(-32, 16).RotatedBy(Projectile.rotation);
 						else
 							drawPos += new Vector2(0, 16).RotatedBy(Projectile.rotation);
-						var topTex = ModContent.Request<Texture2D>(Texture + "Top").Value;
+						Texture2D topTex = ModContent.Request<Texture2D>(Texture + "Top").Value;
 						Main.spriteBatch.Draw(topTex, drawPos + new Vector2(50, 40).RotatedBy(Projectile.rotation), null, color.MultiplyRGB(Color.Gray), ThickTree.GetLeafSway(0, 0.05f, 0.01f) + Projectile.rotation, new Vector2(tex.Width / 2, tex.Height), 1, 0, 0);
 						Main.spriteBatch.Draw(topTex, drawPos + new Vector2(-30, 80).RotatedBy(Projectile.rotation), null, color.MultiplyRGB(Color.DarkGray), ThickTree.GetLeafSway(2, 0.025f, 0.012f) + Projectile.rotation, new Vector2(tex.Width / 2, tex.Height), 1, 0, 0);
 						Main.spriteBatch.Draw(topTex, drawPos, null, color, ThickTree.GetLeafSway(3, 0.05f, 0.008f) + Projectile.rotation, new Vector2(tex.Width / 2, tex.Height), 1, 0, 0);
 					}
 				}
 			}
+
 			return false;
 		}
 

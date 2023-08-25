@@ -3939,6 +3939,7 @@ Projectiles: {
 	ConstructSpawner.DisplayName: Construct Spawner
 	GauntletSpawner.DisplayName: Gauntlet Spawner
 	SpawnEgg.DisplayName: Spawn Egg
+	ThickTreeFalling.DisplayName: Falling Large Tree
 }
 
 Biomes: {
