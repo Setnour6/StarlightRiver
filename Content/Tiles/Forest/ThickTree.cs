@@ -1,11 +1,11 @@
 ﻿//Todo on falling trees:
 
 //Cache frame data (done? test it more to see)
-//Make top of trees separate tile
+//Make top of trees separate tile (maybe not needed?)
 //Sfx (done)
 //Make it include the bottom when you chop it
-//Make them harder to chop
-//Make the bottom choppable by axe
+//Make them harder to chop (done via mining resistance)
+//Make the bottom choppable by axe (done? it seemed to work)
 
 using System;
 using System.Collections.Generic;
@@ -24,6 +24,7 @@ namespace StarlightRiver.Content.Tiles.Forest
 
 		public override void SetStaticDefaults()
 		{
+			MineResist = 1.5f;
 			LocalizedText name = CreateMapEntryName();
 			name.SetDefault("Large Tree");
 
@@ -261,6 +262,7 @@ namespace StarlightRiver.Content.Tiles.Forest
 
 		public override void SetStaticDefaults()
 		{
+			MineResist = 2f;
 			TileObjectData.newTile.AnchorBottom = new AnchorData(AnchorType.SolidTile, 4, 0);
 			Main.tileAxe[Type] = true;
 			TileID.Sets.PreventsTileRemovalIfOnTopOfIt[Type] = true;
