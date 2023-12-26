@@ -19,7 +19,7 @@ namespace StarlightRiver.Content.Tiles.Forest
 {
 	internal class ThickTree : ModTile
 	{
-		private static readonly HashSet<Point> CutPositions = new();
+		internal static readonly HashSet<Point> CutPositions = new();
 		public override string Texture => AssetDirectory.ForestTile + Name;
 
 		public override void SetStaticDefaults()
@@ -57,7 +57,7 @@ namespace StarlightRiver.Content.Tiles.Forest
 			bool up = Framing.GetTileSafely(i, j - 1).TileType == ModContent.TileType<ThickTree>();
 			bool down = Framing.GetTileSafely(i, j + 1).TileType == ModContent.TileType<ThickTree>();
 
-			if (right && !up && down)
+			if ((right || left) && !up && down)
 			{
 				Texture2D tex = ModContent.Request<Texture2D>(Texture + "Top").Value;
 				Vector2 pos = (new Vector2(i + 1, j) + Helpers.Helper.TileAdj) * 16;
@@ -199,7 +199,7 @@ namespace StarlightRiver.Content.Tiles.Forest
 			}
 
 			CutPositions.Add(new Point(i, j));
-			Terraria.Audio.SoundEngine.PlaySound(new Terraria.Audio.SoundStyle($"{nameof(StarlightRiver)}/Sounds/TreeFalling") with { MaxInstances = 0 /*Because fast mining thats why*/}); 
+			Terraria.Audio.SoundEngine.PlaySound(new Terraria.Audio.SoundStyle($"{nameof(StarlightRiver)}/Sounds/TreeFalling") with { Volume = 0.6f, MaxInstances = 3 /*Because fast mining thats why*/}); 
 		}
 
 		public override bool TileFrame(int i, int j, ref bool resetFrame, ref bool noBreak)
@@ -235,7 +235,7 @@ namespace StarlightRiver.Content.Tiles.Forest
 		}
 		private static void SpawnFallingTree(IEntitySource source, int i, int j, int direction)
 		{
-			int height = 1;
+			 int height = 1;
 			for (; height < 500; height++)
 			{
 				if (Framing.GetTileSafely(i, j - height).TileType != ModContent.TileType<ThickTree>() || CutPositions.Contains(new Point(i, j - height)))
@@ -346,14 +346,17 @@ namespace StarlightRiver.Content.Tiles.Forest
 
 			Projectile.rotation += rotationalVelocity;
 
-			Vector2 headPos = Projectile.Center + ((Projectile.rotation - 1.57f).ToRotationVector2() * (height + 2) * 16);
-			Vector2 gorePos = headPos + Main.rand.NextVector2Circular(128, 128);
-			Vector2 goreVel = Projectile.rotation.ToRotationVector2().RotatedByRandom(0.5f) * direction * Main.rand.NextFloat(12);
-			Tile tile = Main.tile[(int)gorePos.X / 16, (int)gorePos.Y / 16];
+			Point tilePosition = (Projectile.Center / 16).ToPoint();
+			if (!ThickTree.CutPositions.Contains(tilePosition))
+			{
+				Vector2 headPos = Projectile.Center + ((Projectile.rotation - 1.57f).ToRotationVector2() * (height + 2) * 16);
+				Vector2 gorePos = headPos + Main.rand.NextVector2Circular(128, 128);
+				Vector2 goreVel = Projectile.rotation.ToRotationVector2().RotatedByRandom(0.5f) * direction * Main.rand.NextFloat(12);
+				Tile tile = Main.tile[(int)gorePos.X / 16, (int)gorePos.Y / 16];
 
-			if (!tile.HasTile || !Main.tileSolid[tile.TileType])
-				Gore.NewGoreDirect(new EntitySource_DropAsItem(Projectile), gorePos, goreVel, GoreID.TreeLeaf_Normal);
-
+				if (!tile.HasTile || !Main.tileSolid[tile.TileType])
+					Gore.NewGoreDirect(new EntitySource_DropAsItem(Projectile), gorePos, goreVel, GoreID.TreeLeaf_Normal);
+			}
 			if (TouchingTile())
 				Projectile.Kill();
 		}
@@ -417,7 +420,7 @@ namespace StarlightRiver.Content.Tiles.Forest
 
 
 
-					if (right && !up && down)
+					if ((right || left) && !up && down)
 					{
 						drawPos -= new Vector2((tex.Width / 2), tex.Height).RotatedBy(Projectile.rotation);
 						if (direction == 1)
@@ -425,9 +428,13 @@ namespace StarlightRiver.Content.Tiles.Forest
 						else
 							drawPos += new Vector2(0, 16).RotatedBy(Projectile.rotation);
 						Texture2D topTex = ModContent.Request<Texture2D>(Texture + "Top").Value;
-						Main.spriteBatch.Draw(topTex, drawPos + new Vector2(50, 40).RotatedBy(Projectile.rotation), null, color.MultiplyRGB(Color.Gray), ThickTree.GetLeafSway(0, 0.05f, 0.01f) + Projectile.rotation, new Vector2(tex.Width / 2, tex.Height), 1, 0, 0);
-						Main.spriteBatch.Draw(topTex, drawPos + new Vector2(-30, 80).RotatedBy(Projectile.rotation), null, color.MultiplyRGB(Color.DarkGray), ThickTree.GetLeafSway(2, 0.025f, 0.012f) + Projectile.rotation, new Vector2(tex.Width / 2, tex.Height), 1, 0, 0);
-						Main.spriteBatch.Draw(topTex, drawPos, null, color, ThickTree.GetLeafSway(3, 0.05f, 0.008f) + Projectile.rotation, new Vector2(tex.Width / 2, tex.Height), 1, 0, 0);
+						Point tilePosition = new Point(framePoint.X, framePoint.Y - height);
+						if (!ThickTree.CutPositions.Contains(tilePosition))
+						{
+							Main.spriteBatch.Draw(topTex, drawPos + new Vector2(50, 40).RotatedBy(Projectile.rotation), null, color.MultiplyRGB(Color.Gray), ThickTree.GetLeafSway(0, 0.05f, 0.01f) + Projectile.rotation, new Vector2(tex.Width / 2, tex.Height), 1, 0, 0);
+							Main.spriteBatch.Draw(topTex, drawPos + new Vector2(-30, 80).RotatedBy(Projectile.rotation), null, color.MultiplyRGB(Color.DarkGray), ThickTree.GetLeafSway(2, 0.025f, 0.012f) + Projectile.rotation, new Vector2(tex.Width / 2, tex.Height), 1, 0, 0);
+							Main.spriteBatch.Draw(topTex, drawPos, null, color, ThickTree.GetLeafSway(3, 0.05f, 0.008f) + Projectile.rotation, new Vector2(tex.Width / 2, tex.Height), 1, 0, 0);
+						}
 					}
 				}
 			}
@@ -453,12 +460,15 @@ namespace StarlightRiver.Content.Tiles.Forest
 				Item.NewItem(new EntitySource_DropAsItem(Projectile), spawnRect, ItemID.Wood, 5);
 			}
 
-			for (int k = 0; k < 600; k++)
+			if (!ThickTree.CutPositions.Contains(basePos))
 			{
-				Vector2 gorePos = (position * 16) + Main.rand.NextVector2Circular(128, 128);
-				Tile tile = Main.tile[(int)gorePos.X / 16, (int)gorePos.Y / 16];
-				if (!tile.HasTile || !Main.tileSolid[tile.TileType])
-					Gore.NewGoreDirect(new EntitySource_DropAsItem(Projectile), gorePos, Main.rand.NextVector2Circular(3, 3), GoreID.TreeLeaf_Normal);
+				for (int k = 0; k < 600; k++)
+				{
+					Vector2 gorePos = (position * 16) + Main.rand.NextVector2Circular(128, 128);
+					Tile tile = Main.tile[(int)gorePos.X / 16, (int)gorePos.Y / 16];
+					if (!tile.HasTile || !Main.tileSolid[tile.TileType])
+						Gore.NewGoreDirect(new EntitySource_DropAsItem(Projectile), gorePos, Main.rand.NextVector2Circular(3, 3), GoreID.TreeLeaf_Normal);
+				}
 			}
 		}
 		private bool TouchingTile()
