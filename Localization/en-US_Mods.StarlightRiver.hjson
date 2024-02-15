@@ -3966,6 +3966,18 @@ Projectiles: {
 	SpawnEgg.DisplayName: Spawn Egg
 	DreambeastProj.DisplayName: Dream Shard
 	DreambeastProjHome.DisplayName: Dream Essence
+	BlueLightsaberLaser.DisplayName: Laser
+	BlueLightsaberLensFlare.DisplayName: Laser
+	BlueLightsaberProjectile.DisplayName: Lightsaber
+	GreenLightsaberShockwave.DisplayName: Shockwave
+	LightsaberImpactRing.DisplayName: Lightsaber
+	LightsaberProj_Green.DisplayName: Lightsaber
+	LightsaberProj_Orange.DisplayName: Lightsaber
+	LightsaberProj_Purple.DisplayName: Lightsaber
+	LightsaberProj_Red.DisplayName: Lightsaber
+	LightsaberProj_White.DisplayName: Lightsaber
+	LightsaberProj_Yellow.DisplayName: Lightsaber
+	YellowLightsaberDashProjectile.DisplayName: Lightsaber
 }
 
 Biomes: {

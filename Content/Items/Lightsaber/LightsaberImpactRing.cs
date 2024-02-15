@@ -1,17 +1,16 @@
 using StarlightRiver.Helpers;
-using System;
 using System.Collections.Generic;
-using Terraria.Graphics.Effects;
+using System;
 using Terraria.ID;
+using Terraria.Graphics.Effects;
 
-namespace StarlightRiver.Content.Items.Vitric.IgnitionGauntlets
+namespace StarlightRiver.Content.Items.Lightsaber
 {
-	public class IgnitionGauntletsImpactRing : ModProjectile, IDrawPrimitive
+	public class LightsaberImpactRing : ModProjectile
 	{
 		public Color outerColor = Color.Orange;
 		public int ringWidth = 28;
 		public bool additive = false;
-		public bool behindTiles = false;
 
 		private List<Vector2> cache;
 
@@ -20,11 +19,11 @@ namespace StarlightRiver.Content.Items.Vitric.IgnitionGauntlets
 
 		public int timeLeftStart = 10;
 
-		public override string Texture => AssetDirectory.Assets + "Invisible";
-
 		private float Progress => 1 - Projectile.timeLeft / (float)timeLeftStart;
 
 		private float Radius => Projectile.ai[0] * (float)Math.Sqrt(Math.Sqrt(Progress));
+
+		public override string Texture => AssetDirectory.Assets + "Invisible";
 
 		public override void SetDefaults()
 		{
@@ -35,19 +34,20 @@ namespace StarlightRiver.Content.Items.Vitric.IgnitionGauntlets
 			Projectile.penetrate = -1;
 			Projectile.timeLeft = timeLeftStart;
 			Projectile.extraUpdates = 1;
+			Projectile.hide = true;
 		}
 
 		public override void SetStaticDefaults()
 		{
-			DisplayName.SetDefault("Ignition Gauntlets");
+			DisplayName.SetDefault("Lightsaber");
 		}
 
-        public override void DrawBehind(int index, List<int> behindNPCsAndTiles, List<int> behindNPCs, List<int> behindProjectiles, List<int> overPlayers, List<int> overWiresUI)
-        {
+		public override void DrawBehind(int index, List<int> behindNPCsAndTiles, List<int> behindNPCs, List<int> behindProjectiles, List<int> overPlayers, List<int> overWiresUI)
+		{
 			behindNPCsAndTiles.Add(index);
 		}
 
-        public override void AI()
+		public override void AI()
 		{
 			Projectile.velocity *= 0.95f;
 
@@ -60,6 +60,10 @@ namespace StarlightRiver.Content.Items.Vitric.IgnitionGauntlets
 
 		public override bool PreDraw(ref Color lightColor)
 		{
+			Main.spriteBatch.End();
+			DrawPrimitives();
+			Main.spriteBatch.Begin(default, default, default, default, default, default, Main.GameViewMatrix.ZoomMatrix);
+
 			return false;
 		}
 
@@ -85,12 +89,10 @@ namespace StarlightRiver.Content.Items.Vitric.IgnitionGauntlets
 
 		private void ManageTrail()
 		{
-			trail ??= new Trail(Main.instance.GraphicsDevice, 33, new TriangularTip(1), factor => 28 * (1 - Progress), factor => Color.Orange);
 
 			trail ??= new Trail(Main.instance.GraphicsDevice, 33, new TriangularTip(1), factor => ringWidth * (1 - Progress), factor => outerColor);
 
 			trail2 ??= new Trail(Main.instance.GraphicsDevice, 33, new TriangularTip(1), factor => ringWidth * 0.36f * (1 - Progress), factor => Color.White);
-
 			float nextplace = 33f / 32f;
 			var offset = new Vector2((float)Math.Sin(nextplace), (float)Math.Cos(nextplace));
 			offset *= Radius;
@@ -107,7 +109,7 @@ namespace StarlightRiver.Content.Items.Vitric.IgnitionGauntlets
 			Effect effect = Filters.Scene["OrbitalStrikeTrail"].GetShader().Shader;
 
 			var world = Matrix.CreateTranslation(-Main.screenPosition.Vec3());
-			Matrix view = Main.GameViewMatrix.TransformationMatrix;
+			Matrix view = Main.GameViewMatrix.ZoomMatrix;
 			var projection = Matrix.CreateOrthographicOffCenter(0, Main.screenWidth, Main.screenHeight, 0, -1, 1);
 
 			effect.Parameters["transformMatrix"].SetValue(world * view * projection);
